@@ -11,14 +11,14 @@ void shiftOut_lsbFirst_rd(uint8_t dataPin, uint8_t clockPin, uint8_t value)
 
 	cycles_multiply = 3;
 	if (F_CPU_ACTUAL > maxSpeedBeforeDelay) {
-		// Serial.println("OVER max speed");
+		// DPRINTLN("OVER max speed");
 		uint32_t cycles = (F_CPU_ACTUAL / 2 / maxSpeed);
 		cycles *= cycles_multiply;
 		uint32_t t = ARM_DWT_CYCCNT;
 		for (mask = 0x01; mask; mask <<= 1) {
 		    digitalWrite(dataPin, value & mask);
 		    do {;} while(ARM_DWT_CYCCNT - t < cycles);
-			Serial.println(cycles);
+			DPRINTLN(cycles);
 		    t += cycles / 2;
 
 		    digitalWrite(clockPin, HIGH);
@@ -32,7 +32,7 @@ void shiftOut_lsbFirst_rd(uint8_t dataPin, uint8_t clockPin, uint8_t value)
 	}
 	else
 	{
-		// Serial.println("under max speed");
+		// DPRINTLN("under max speed");
 		for (mask=0x01; mask; mask <<= 1) {
 			digitalWrite(dataPin, value & mask);
 			digitalWrite(clockPin, HIGH);

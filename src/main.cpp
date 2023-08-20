@@ -2,15 +2,21 @@
 #include "shallow.h"
 
 #define LATCH 40 // common latch
-#define RELAY 41 // relay pour alimentation 12v
-#define RJ_START 1 // premiere sortie a jouer
-#define RJ_END 19 // premiere sortie a jouer
+#define RELAY 41 // relay pour alimentation 12v 
+
 #define RJ_TOT 19 // quantite de sorties RJ actives
 #define MODULE_SERIE_Q 2 // quantitee de modules en serie, au bout de chaque rj12
+
+ /* pour run test sur chaque sortie */
+#define RJ_START 1 // premiere sortie a jouer
+#define RJ_END 19 // premiere sortie a jouer
+
 
 typedef struct s_rj {
   u_int8_t data;
   u_int8_t clock;
+  elapsedMicros output_on;
+  elapsedMicros output_off;
 }             t_rj;
 
 t_rj  rj_out[20];
@@ -32,19 +38,29 @@ void setup() {
     rj_out[i].data = i * 2;
     rj_out[i].clock = (i * 2) + 1 ;
   }
-  for(u_int8_t i = 1; i <= 19; i++)
+  for(u_int8_t i = 1; i <= 19; i++) // debug le numero de chaque RJ output
   {
-    Serial.print("rj.out");
-    Serial.print(i);
-    Serial.print(" | data=");
-    Serial.print(rj_out[i].data);
-    Serial.print(" | clock=");
-    Serial.println(rj_out[i].clock);
+    DPRINT("rj.out");
+    DPRINT(i);
+    DPRINT(" | data=");
+    DPRINT(rj_out[i].data);
+    DPRINT(" | clock=");
+    DPRINTLN(rj_out[i].clock);
   }
-  for(int i = 1; i <= RJ_TOT; i++)
-    reset_module(rj_out[i], MODULE_SERIE_Q);
+  for (int x = 0; x < 3; x++) { // on reset trois fois de suite toutes les sorties, par paranoia
+    for(int i = 1; i <= RJ_TOT; i++)
+      reset_module(rj_out[i], MODULE_SERIE_Q);
+  }
+  
+  /* 
+  ici il faudra ajouter un fonction qui check que le courant qui passe est nul 
+  s'il n'est pas nul: allume led 13 puis while(1)
+  on pourrait aussi faire une boucle qui allume chaque élément, et check le courrant de chacun (et le printant par exemple)
+  à voir si c'est possible
+  */
+  
   digitalWrite(RELAY, HIGH);
-  Serial.println("relay HIGH");
+  DPRINTLN("relay HIGH");
   digitalWrite(LED_BUILTIN, HIGH);
   delay(500);
   digitalWrite(LED_BUILTIN, LOW);
@@ -99,10 +115,10 @@ void test_module(t_rj rj_out, int module_nbr, int del)
     for (int y = currentShiftreg; y > 0; y--)
       shiftOut_msbFirst_rd(rj_out.data, rj_out.clock, 0);
     digitalWrite(LATCH, HIGH);
-    // Serial.print("writing to outputs ");
-    // Serial.print(rj_out.data);
-    // Serial.print(" and ");
-    // Serial.println(rj_out.clock);
+    // DPRINT("writing to outputs ");
+    // DPRINT(rj_out.data);
+    // DPRINT(" and ");
+    // DPRINTLN(rj_out.clock);
     delayMicroseconds(del);
     if (i == (8 * totalShiftreg) - 1)
     {
