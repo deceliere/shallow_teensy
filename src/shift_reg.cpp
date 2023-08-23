@@ -18,7 +18,7 @@ void shiftOut_lsbFirst_rd(uint8_t dataPin, uint8_t clockPin, uint8_t value)
 		for (mask = 0x01; mask; mask <<= 1) {
 		    digitalWrite(dataPin, value & mask);
 		    do {;} while(ARM_DWT_CYCCNT - t < cycles);
-			DPRINTLN(cycles);
+			// DPRINTLN(cycles);
 		    t += cycles / 2;
 
 		    digitalWrite(clockPin, HIGH);

@@ -1,32 +1,11 @@
 #include <Arduino.h>
 #include "shallow.h"
 
-#define LATCH 40 // common latch
-#define RELAY 41 // relay pour alimentation 12v 
-
-#define RJ_TOT 19 // quantite de sorties RJ actives
-#define MODULE_SERIE_Q 2 // quantitee de modules en serie, au bout de chaque rj12
-
- /* pour run test sur chaque sortie */
-#define RJ_START 1 // premiere sortie a jouer
-#define RJ_END 19 // premiere sortie a jouer
-
-
-typedef struct s_rj {
-  u_int8_t data;
-  u_int8_t clock;
-  elapsedMicros output_on;
-  elapsedMicros output_off;
-}             t_rj;
-
-t_rj  rj_out[20];
-
-void test_module(t_rj rj_out, int module_nbr, int del);
-void reset_module(t_rj rj_out, int module_nbr);
+t_rj    rj_out[20];
 
 void setup() {
   Serial.begin(9600);
-  // while(!Serial);
+  SERIAL_WAIT;
   for (int i = 0; i < 42; i++)
   {
     pinMode(i, OUTPUT);
@@ -50,10 +29,16 @@ void setup() {
   for (int x = 0; x < 3; x++) { // on reset trois fois de suite toutes les sorties, par paranoia
     for(int i = 1; i <= RJ_TOT; i++)
       reset_module(rj_out[i], MODULE_SERIE_Q);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(200);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(500);
   }
-  
+  randomSeed(analogRead(A0));
+  leaf_init();
+  // while(1);
   /* 
-  ici il faudra ajouter un fonction qui check que le courant qui passe est nul 
+  ici il faudra ajouter une fonction qui check que le courant qui passe est nul 
   s'il n'est pas nul: allume led 13 puis while(1)
   on pourrait aussi faire une boucle qui allume chaque élément, et check le courrant de chacun (et le printant par exemple)
   à voir si c'est possible
@@ -79,6 +64,37 @@ void loop() {
   
 }
 
+void  leaf_init(void)
+{
+  for (int i = 1; i <= RJ_TOT; i++)
+  {
+    for(int module_leaf = 0; module_leaf < MODULE_SERIE_Q * MODULE_OUTPUT_Q; module_leaf++)
+    {
+      rj_out[i].leaf[module_leaf].isActive = 0;
+      // rj_out[i].leaf[module_leaf].leaf_byte = 0;
+      rj_out[i].leaf[module_leaf].timeOn = random(MIN_ON_TIME, MAX_ON_TIME);
+      rj_out[i].leaf[module_leaf].timeOff = random(MIN_OFF_TIME, MAX_OFF_TIME);
+      DPRINT("rj ");
+      DPRINT(i);
+      DPRINT(" leaf ");
+      DPRINT(module_leaf + 1);
+      DPRINT(": time on(micros)=");
+      DPRINT(rj_out[i].leaf[module_leaf].timeOn);
+      DPRINT(", time off(millis)=");
+      DPRINTLN(rj_out[i].leaf[module_leaf].timeOff);
+    }
+    rj_out[i].module1 = 0;
+    rj_out[i].module2 = 0;
+  }
+}
+
+void  leaf_status_update (void)
+{
+  for (int i = 1; i <= TOT_LEAVES; i++)
+  {
+
+  }
+}
 
 void reset_module(t_rj rj_out, int module_nbr)
 {
