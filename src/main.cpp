@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "shallow.h"
 
 t_rj    rj_out[20];
@@ -58,8 +57,9 @@ void loop() {
   // delay(1000);
   // digitalWrite(13, LOW);
   // delay(1000);
-  for(int i = RJ_START; i <= RJ_END; i++)
-    test_module(rj_out[i], 2, 500);
+  leaf_status_update();
+  // for(int i = RJ_START; i <= RJ_END; i++)
+  //   test_module(rj_out[i], 2, 500);
 
   
 }
@@ -74,25 +74,64 @@ void  leaf_init(void)
       // rj_out[i].leaf[module_leaf].leaf_byte = 0;
       rj_out[i].leaf[module_leaf].timeOn = random(MIN_ON_TIME, MAX_ON_TIME);
       rj_out[i].leaf[module_leaf].timeOff = random(MIN_OFF_TIME, MAX_OFF_TIME);
-      DPRINT("rj ");
+      DPRINT("rj.");
       DPRINT(i);
-      DPRINT(" leaf ");
-      DPRINT(module_leaf + 1);
+      DPRINT(" leaf.");
+      DPRINT(module_leaf + 1); // juste pour l'affichage
       DPRINT(": time on(micros)=");
       DPRINT(rj_out[i].leaf[module_leaf].timeOn);
       DPRINT(", time off(millis)=");
       DPRINTLN(rj_out[i].leaf[module_leaf].timeOff);
     }
-    rj_out[i].module1 = 0;
-    rj_out[i].module2 = 0;
+    for(int j = 0; j < MODULE_SHIFT_REG * MODULE_SERIE_Q; j++)
+      rj_out[i].shift_register[j] = 0;
   }
 }
 
-void  leaf_status_update (void)
+void  leaf_status_update(void)
 {
-  for (int i = 1; i <= TOT_LEAVES; i++)
+ for (int i = 1; i <= RJ_TOT; i++)
   {
+    for(int j = 0; j < MODULE_SHIFT_REG * MODULE_SERIE_Q; j++)
+      rj_out[i].shift_register[j] = 0;
+    for(int current_shift_reg = 0; current_shift_reg < MODULE_SHIFT_REG * MODULE_SERIE_Q; current_shift_reg++)
+    {
+      for(int rj_leaf = 0; rj_leaf < SHIFT_REG_OUTPUT_Q; rj_leaf++)
+      {
+        if (rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].elapsed_off >= rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].timeOff && !rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].isActive)
+        {
+          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].isActive = 1;
+          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].elapsed_on = 0;
+          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte = 1;
+          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte <<= rj_leaf;
+          rj_out[i].shift_register[current_shift_reg] |= rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte;
+          DPRINT("rj.");
+          DPRINT(i);
+          DPRINT(" shift_reg.");
+          DPRINT(current_shift_reg);
+          DPRINT(" leaf.");
+          DPRINT(rj_leaf * (current_shift_reg + 1));
+          DPRINTLN(" OFF");
+          // random off time pour le prochain tour
+        }
+        else if(rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].elapsed_on >= rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].timeOn && rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].isActive)
+        {
+          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].isActive = 0;
+          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].elapsed_off = 0;
+          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte = 1;
+          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte <<= rj_leaf;
+          rj_out[i].shift_register[current_shift_reg] &= ~rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte;
+          DPRINT("rj.");
+          DPRINT(i);
+          DPRINT(" shift_reg.");
+          DPRINT(current_shift_reg);
+          DPRINT(" leaf.");
+          DPRINT(rj_leaf);
+          DPRINTLN(" ON");
+        }
 
+      }
+    }
   }
 }
 

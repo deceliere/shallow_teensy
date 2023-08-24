@@ -1,5 +1,7 @@
-// #define DEBUG
-// #define WAIT_SERIAL
+#include <Arduino.h>
+
+#define DEBUG
+#define WAIT_SERIAL
 
 #ifdef DEBUG
 #define DPRINT(...) Serial.print(__VA_ARGS__)
@@ -19,7 +21,9 @@
 #define RELAY 41 // relay pour alimentation 12v 
 
 #define RJ_TOT 19 // quantite de sorties RJ actives
+#define MODULE_SHIFT_REG 2 // quantite de shift reg par module
 #define MODULE_SERIE_Q 2 // quantite de modules en serie, au bout de chaque rj12
+#define SHIFT_REG_OUTPUT_Q 8 // quantite de sorties par module 
 #define MODULE_OUTPUT_Q 16 // quantite de sorties par module 
 
  /* pour run test sur chaque sortie */
@@ -48,14 +52,15 @@ typedef struct s_leaf {
 typedef struct s_rj {
   u_int8_t  data;
   u_int8_t  clock;
-  t_leaf    leaf[RJ_TOT * MODULE_SERIE_Q * MODULE_OUTPUT_Q];
-  byte      module1;
-  byte      module2;
+  t_leaf    leaf[MODULE_SERIE_Q * MODULE_OUTPUT_Q];
+  u_int8_t  shift_register[MODULE_SHIFT_REG * MODULE_SERIE_Q];
 }             t_rj;
 
 
-void shiftOut_msbFirst_rd(uint8_t dataPin, uint8_t clockPin, uint8_t value);
-void shiftOut_lsbFirst_rd(uint8_t dataPin, uint8_t clockPin, uint8_t value);
-void test_module(t_rj rj_out, int module_nbr, int del);
-void reset_module(t_rj rj_out, int module_nbr);
+void  shiftOut_msbFirst_rd(uint8_t dataPin, uint8_t clockPin, uint8_t value);
+void  shiftOut_lsbFirst_rd(uint8_t dataPin, uint8_t clockPin, uint8_t value);
+void  test_module(t_rj rj_out, int module_nbr, int del);
+void  reset_module(t_rj rj_out, int module_nbr);
 void  leaf_init(void);
+void  leaf_status_update(void);
+
