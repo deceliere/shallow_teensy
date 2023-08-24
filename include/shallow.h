@@ -1,7 +1,8 @@
 #include <Arduino.h>
+// #include <string>
 
-#define DEBUG
-#define WAIT_SERIAL
+// #define DEBUG
+// #define WAIT_SERIAL
 
 #ifdef DEBUG
 #define DPRINT(...) Serial.print(__VA_ARGS__)
@@ -20,6 +21,9 @@
 #define LATCH 40 // common latch
 #define RELAY 41 // relay pour alimentation 12v 
 
+#define LATCH_DELAY 100 // temps min d'activation du latch pour un signal correct
+#define CYCLES_MULTIPLY 3 // facteur de duree ON des signaux data + clock pour un signal correct
+
 #define RJ_TOT 19 // quantite de sorties RJ actives
 #define MODULE_SHIFT_REG 2 // quantite de shift reg par module
 #define MODULE_SERIE_Q 2 // quantite de modules en serie, au bout de chaque rj12
@@ -33,8 +37,8 @@
 #define MIN_ON_TIME 100 // temps min leaf active (microsecondes)
 #define MAX_ON_TIME 10000 // temps max leaf active (microsecondes)
 
-#define MIN_OFF_TIME 1000 // temps min leaf inactive (millis)
-#define MAX_OFF_TIME 10000 // temps max leaf inactive (millis)
+#define MIN_OFF_TIME 10000 // temps min leaf inactive (millis)
+#define MAX_OFF_TIME 100000 // temps max leaf inactive (millis)
 
 #define TOT_LEAVES 601 // nombre total de feuilles // TBC
 
@@ -43,7 +47,7 @@
 typedef struct s_leaf {
   u_int32_t     timeOn;
   u_int32_t     timeOff;
-  byte          leaf_byte; // TBC
+  u_int8_t      leaf_byte; // TBC
   bool          isActive;
   elapsedMicros elapsed_on;
   elapsedMillis elapsed_off;
@@ -63,4 +67,5 @@ void  test_module(t_rj rj_out, int module_nbr, int del);
 void  reset_module(t_rj rj_out, int module_nbr);
 void  leaf_init(void);
 void  leaf_status_update(void);
+// void  u_int8_to_binary(uint8_t num); // nul, WIP
 

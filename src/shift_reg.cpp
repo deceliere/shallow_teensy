@@ -7,13 +7,14 @@ static const unsigned maxSpeedBeforeDelay = 392000000ULL; //max F_CPU_ACTUAL bef
 void shiftOut_lsbFirst_rd(uint8_t dataPin, uint8_t clockPin, uint8_t value)
 {
 	uint8_t mask;
-	uint8_t cycles_multiply;
+	// uint8_t cycles_multiply;
 
-	cycles_multiply = 3;
+	// cycles_multiply = 3; // 3 semble bien, en tout cas pour le test
 	if (F_CPU_ACTUAL > maxSpeedBeforeDelay) {
 		// DPRINTLN("OVER max speed");
 		uint32_t cycles = (F_CPU_ACTUAL / 2 / maxSpeed);
-		cycles *= cycles_multiply;
+		if (CYCLES_MULTIPLY > 0)
+			cycles *= CYCLES_MULTIPLY;
 		uint32_t t = ARM_DWT_CYCCNT;
 		for (mask = 0x01; mask; mask <<= 1) {
 		    digitalWrite(dataPin, value & mask);
