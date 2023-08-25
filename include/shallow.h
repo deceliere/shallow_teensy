@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include "Entropy.h"
 
-// #define DEBUG
-// #define WAIT_SERIAL
+#define DEBUG
+#define WAIT_SERIAL
 
 #ifdef DEBUG
 #define DPRINT(...) Serial.print(__VA_ARGS__)
@@ -24,7 +24,7 @@
 #define LATCH_DELAY 100 // temps min d'activation du latch pour un signal correct
 #define CYCLES_MULTIPLY 3 // facteur de duree ON des signaux data + clock pour un signal correct
 
-#define RJ_TOT 19 // quantite de sorties RJ actives
+#define RJ_TOT 2 // quantite de sorties RJ actives
 #define MODULE_SHIFT_REG 2 // quantite de shift reg par module
 #define MODULE_SERIE_Q 2 // quantite de modules en serie, au bout de chaque rj12
 #define SHIFT_REG_OUTPUT_Q 8 // quantite de sorties par module 
@@ -37,8 +37,8 @@
 #define MIN_ON_TIME 100 // temps min leaf active (microsecondes)
 #define MAX_ON_TIME 10000 // temps max leaf active (microsecondes)
 
-#define MIN_OFF_TIME 10000 // temps min leaf inactive (millis)
-#define MAX_OFF_TIME 100000 // temps max leaf inactive (millis)
+#define MIN_OFF_TIME 10000 // temps min leaf inactive (millis) * 10000 2023.8.25
+#define MAX_OFF_TIME 100000 // temps max leaf inactive (millis) * 100000 2023.8.25
 
 #define TOT_LEAVES 601 // nombre total de feuilles // TBC
 
@@ -67,7 +67,12 @@ void  test_module(t_rj rj_out, int module_nbr, int del);
 void  reset_module(t_rj rj_out, int module_nbr);
 void  leaf_init(void);
 void  leaf_status_update(void);
-void    led_blink(int time_on, int time_off);
+
+/* utils */
+void  led_blink(int time_on, int time_off);
+void  print_binary(int num);
+int   bytes_count(int num);
+
 
 // void  u_int8_to_binary(uint8_t num); // nul, WIP
 
