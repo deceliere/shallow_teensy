@@ -1,5 +1,5 @@
 #include <Arduino.h>
-// #include <string>
+#include "Entropy.h"
 
 // #define DEBUG
 // #define WAIT_SERIAL
@@ -47,7 +47,7 @@
 typedef struct s_leaf {
   u_int32_t     timeOn;
   u_int32_t     timeOff;
-  u_int8_t      leaf_byte; // TBC
+  u_int8_t      leaf_byte; // TBC, en int ou en byte ?
   bool          isActive;
   elapsedMicros elapsed_on;
   elapsedMillis elapsed_off;
@@ -67,5 +67,7 @@ void  test_module(t_rj rj_out, int module_nbr, int del);
 void  reset_module(t_rj rj_out, int module_nbr);
 void  leaf_init(void);
 void  leaf_status_update(void);
+void    led_blink(int time_on, int time_off);
+
 // void  u_int8_to_binary(uint8_t num); // nul, WIP
 

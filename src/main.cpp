@@ -1,7 +1,7 @@
 #include "shallow.h"
 
-t_rj            rj_out[20];
-elapsedMicros   latch_on;
+t_rj rj_out[20];
+elapsedMicros latch_on;
 
 void setup()
 {
@@ -18,7 +18,7 @@ void setup()
     rj_out[i].data = i * 2;
     rj_out[i].clock = (i * 2) + 1;
   }
-  for (u_int8_t i = 1; i <= 19; i++) // debug le numero de chaque RJ output
+  for (u_int8_t i = 1; i <= 19; i++) // debug le numero de chaque RJ output data + clock
   {
     DPRINT("rj.out");
     DPRINT(i);
@@ -27,14 +27,11 @@ void setup()
     DPRINT(" | clock=");
     DPRINTLN(rj_out[i].clock);
   }
-  for (int x = 0; x < 3; x++)
-  { // on reset trois fois de suite toutes les sorties, par paranoia
+  for (int x = 0; x < 3; x++) // reset 3x de suite toutes les sorties, par paranoia
+  { 
     for (int i = 1; i <= RJ_TOT; i++)
       reset_module(rj_out[i], MODULE_SERIE_Q);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(200);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(500);
+    led_blink(200, 500);
   }
   randomSeed(analogRead(A0));
   leaf_init();
@@ -48,9 +45,10 @@ void setup()
 
   digitalWrite(RELAY, HIGH);
   DPRINTLN("relay HIGH");
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(500);
-  digitalWrite(LED_BUILTIN, LOW);
+  led_blink(500, 0);
+  // digitalWrite(LED_BUILTIN, HIGH);
+  // delay(500);
+  // digitalWrite(LED_BUILTIN, LOW);
 }
 
 void loop()
@@ -58,7 +56,7 @@ void loop()
   leaf_status_update();
 
   // for(int i = RJ_START; i <= RJ_END; i++)
-    // test_module(rj_out[i], 2, 100);
+  // test_module(rj_out[i], 2, 100);
 }
 
 void leaf_init(void)
@@ -90,7 +88,7 @@ void leaf_status_update(void)
   if (latch_on >= LATCH_DELAY)
     digitalWrite(LATCH, LOW);
   else
-    return ;
+    return;
   for (int i = 1; i <= RJ_TOT; i++)
   {
     for (int j = 0; j < MODULE_SHIFT_REG * MODULE_SERIE_Q; j++)
@@ -143,11 +141,7 @@ void leaf_status_update(void)
   }
   digitalWrite(LATCH, HIGH);
   latch_on = 0;
-  // delayMicroseconds(LATCH_DELAY);
-}
-
-void output_status_update(void)
-{
+  // delayMicroseconds(LATCH_DELAY); // a enlever si elapsed fonctionne
 }
 
 void reset_module(t_rj rj_out, int module_nbr)
