@@ -1,6 +1,7 @@
 #include "shallow.h"
 
-t_rj rj_out[20];
+t_rj            rj_out[20];
+elapsedMicros   latch_on;
 
 void setup()
 {
@@ -67,7 +68,7 @@ void leaf_init(void)
     for (int module_leaf = 0; module_leaf < MODULE_SERIE_Q * MODULE_OUTPUT_Q; module_leaf++)
     {
       rj_out[i].leaf[module_leaf].isActive = 0;
-      rj_out[i].leaf[module_leaf].leaf_byte = 0;
+      rj_out[i].leaf[module_leaf].leaf_byte = 1;
       rj_out[i].leaf[module_leaf].timeOn = random(MIN_ON_TIME, MAX_ON_TIME);
       rj_out[i].leaf[module_leaf].timeOff = random(MIN_OFF_TIME, MAX_OFF_TIME);
       DPRINT("rj.");
@@ -86,7 +87,10 @@ void leaf_init(void)
 
 void leaf_status_update(void)
 {
-  digitalWrite(LATCH, LOW);
+  if (latch_on >= LATCH_DELAY)
+    digitalWrite(LATCH, LOW);
+  else
+    return ;
   for (int i = 1; i <= RJ_TOT; i++)
   {
     for (int j = 0; j < MODULE_SHIFT_REG * MODULE_SERIE_Q; j++)
@@ -99,7 +103,7 @@ void leaf_status_update(void)
         {
           rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].isActive = 1;
           rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].elapsed_on = 0;
-          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte = 1;
+          // rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte = 1;
           rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte <<= rj_leaf;
           // DPRINT("ON byte=");
           // DPRINTLN(rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte);
@@ -118,7 +122,7 @@ void leaf_status_update(void)
         {
           rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].isActive = 0;
           rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].elapsed_off = 0;
-          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte = 1;
+          // rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte = 1;
           rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte <<= rj_leaf;
           // DPRINT("OFF byte=");
           // DPRINTLN(rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte);
@@ -138,7 +142,8 @@ void leaf_status_update(void)
     }
   }
   digitalWrite(LATCH, HIGH);
-  delayMicroseconds(LATCH_DELAY);
+  latch_on = 0;
+  // delayMicroseconds(LATCH_DELAY);
 }
 
 void output_status_update(void)
