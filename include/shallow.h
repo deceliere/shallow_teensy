@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include "Entropy.h"
 
-#define DEBUG
-#define WAIT_SERIAL
+// #define DEBUG
+// #define WAIT_SERIAL
 
 #ifdef DEBUG
 #define DPRINT(...) Serial.print(__VA_ARGS__)
@@ -18,13 +18,13 @@
 #define SERIAL_WAIT
 #endif
 
-#define LATCH 40 // common latch
-#define RELAY 41 // relay pour alimentation 12v 
+#define LATCH 40 // common latch pin
+#define RELAY 41 // relay pour alimentation 12v pin
 
-#define LATCH_DELAY 100 // temps min d'activation du latch pour un signal correct
+#define LATCH_DELAY 100 // temps min d'activation du latch pour un signal correct (micros)
 #define CYCLES_MULTIPLY 3 // facteur de duree ON des signaux data + clock pour un signal correct
 
-#define RJ_TOT 2 // quantite de sorties RJ actives
+#define RJ_TOT 19 // quantite de sorties RJ actives
 #define MODULE_SHIFT_REG 2 // quantite de shift reg par module
 #define MODULE_SERIE_Q 2 // quantite de modules en serie, au bout de chaque rj12
 #define SHIFT_REG_OUTPUT_Q 8 // quantite de sorties par module 
@@ -34,11 +34,11 @@
 #define RJ_START 1 // premiere sortie a jouer
 #define RJ_END 19 // premiere sortie a jouer
 
-#define MIN_ON_TIME 100 // temps min leaf active (microsecondes)
-#define MAX_ON_TIME 10000 // temps max leaf active (microsecondes)
+#define MIN_ON_TIME 10 // temps min leaf active (microsecondes)
+#define MAX_ON_TIME 5000 // temps max leaf active (microsecondes)
 
-#define MIN_OFF_TIME 10000 // temps min leaf inactive (millis) * 10000 2023.8.25
-#define MAX_OFF_TIME 100000 // temps max leaf inactive (millis) * 100000 2023.8.25
+#define MIN_OFF_TIME 1000 // temps min leaf inactive (millis) * 10000 2023.8.25
+#define MAX_OFF_TIME 10000 // temps max leaf inactive (millis) * 100000 2023.8.25
 
 #define TOT_LEAVES 601 // nombre total de feuilles // TBC
 
@@ -67,6 +67,8 @@ void  test_module(t_rj rj_out, int module_nbr, int del);
 void  reset_module(t_rj rj_out, int module_nbr);
 void  leaf_init(void);
 void  leaf_status_update(void);
+void  leaf_status_update1(void);
+
 
 /* utils */
 void  led_blink(int time_on, int time_off);

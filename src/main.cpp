@@ -1,7 +1,7 @@
 #include "shallow.h"
 
 t_rj rj_out[20];
-elapsedMicros latch_on;
+elapsedMicros latch_on = 0;
 
 void setup()
 {
@@ -53,7 +53,7 @@ void setup()
 
 void loop()
 {
-  leaf_status_update();
+  leaf_status_update1();
 
   // for(int i = RJ_START; i <= RJ_END; i++)
   // test_module(rj_out[i], 2, 100);
@@ -74,7 +74,7 @@ void leaf_init(void)
       DPRINT("rj.");
       DPRINT(i);
       DPRINT(" leaf.");
-      DPRINT(module_leaf + 1); // juste pour l'affichage
+      DPRINT(module_leaf);
       DPRINT(": time on(micros)=");
       DPRINT(rj_out[i].leaf[module_leaf].timeOn);
       DPRINT(", time off(millis)=");
@@ -83,6 +83,65 @@ void leaf_init(void)
     for (int j = 0; j < MODULE_SHIFT_REG * MODULE_SERIE_Q; j++)
       rj_out[i].shift_register[j] = 0;
   }
+}
+
+
+void leaf_status_update1(void)
+{
+  if (latch_on >= LATCH_DELAY)
+    digitalWrite(LATCH, LOW);
+  else
+    return;
+  for (int i = 1; i <= RJ_TOT; i++)
+  {
+    for (int rj_leaf = (SHIFT_REG_OUTPUT_Q * MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; rj_leaf >= 0; rj_leaf--)
+    {
+      if (rj_out[i].leaf[rj_leaf].elapsed_off >= rj_out[i].leaf[rj_leaf].timeOff && !rj_out[i].leaf[rj_leaf].isActive)
+      {
+        rj_out[i].leaf[rj_leaf].isActive = 1;
+        rj_out[i].leaf[rj_leaf].leaf_byte = 1; // mettre dans init puisque jamais modifie?
+        rj_out[i].leaf[rj_leaf].leaf_byte <<= (rj_leaf + 1) % 8; // mettre dans init puisque jamais modifie?
+        rj_out[i].shift_register[rj_leaf / SHIFT_REG_OUTPUT_Q] |= rj_out[i].leaf[rj_leaf].leaf_byte;
+        rj_out[i].leaf[rj_leaf].timeOff = random(MIN_OFF_TIME, MAX_OFF_TIME);
+        rj_out[i].leaf[rj_leaf].elapsed_on = 0;
+        DPRINT("rj.");
+        DPRINT(i);
+        DPRINT(" shift_reg.");
+        DPRINT(rj_leaf / MODULE_SHIFT_REG * MODULE_SERIE_Q);
+        DPRINT(" reg_leaf.");
+        DPRINT(rj_leaf % 8);
+        DPRINT(" rj_leaf.");
+        DPRINT(rj_leaf);
+        DPRINTLN(" ON");
+        DPRINT("result ON=");
+        print_binary(rj_out[i].shift_register[rj_leaf / MODULE_SHIFT_REG * MODULE_SERIE_Q]);
+        DPRINTLN();
+      }
+      else if (rj_out[i].leaf[rj_leaf].elapsed_on >= rj_out[i].leaf[rj_leaf].timeOn && rj_out[i].leaf[rj_leaf].isActive)
+      {
+        rj_out[i].leaf[rj_leaf].isActive = 0;
+        rj_out[i].shift_register[rj_leaf / SHIFT_REG_OUTPUT_Q] &= ~rj_out[i].leaf[rj_leaf].leaf_byte;
+        rj_out[i].leaf[rj_leaf].timeOn = random(MIN_ON_TIME, MAX_ON_TIME);
+        rj_out[i].leaf[rj_leaf].elapsed_off = 0;
+        DPRINT("rj.");
+        DPRINT(i);
+        DPRINT(" shift_reg.");
+        DPRINT(rj_leaf / MODULE_SHIFT_REG * MODULE_SERIE_Q);
+        DPRINT(" reg_leaf.");
+        DPRINT(rj_leaf % 8);
+        DPRINT(" rj_leaf.");
+        DPRINT(rj_leaf);
+        DPRINTLN(" OFF");
+        DPRINT("result OFF=");
+        print_binary(rj_out[i].shift_register[rj_leaf / MODULE_SHIFT_REG * MODULE_SERIE_Q]);
+        DPRINTLN();
+      }
+    }
+    for (int current_shift_reg = 3; current_shift_reg >= 0; current_shift_reg--)
+      shiftOut_msbFirst_rd(rj_out[i].data, rj_out[i].clock, rj_out[i].shift_register[current_shift_reg]);
+  }
+  digitalWrite(LATCH, HIGH);
+  latch_on = 0;
 }
 
 void leaf_status_update(void)
