@@ -3,13 +3,16 @@
 
 // #define DEBUG
 // #define WAIT_SERIAL
+// #define BLINK_TEST_MODE
 
 #ifdef DEBUG
 #define DPRINT(...) Serial.print(__VA_ARGS__)
 #define DPRINTLN(...) Serial.println(__VA_ARGS__)
+#define DPRINT_BINARY(...) print_binary(__VA_ARGS__)
 #else 
 #define DPRINT(...)
 #define DPRINTLN(...)
+#define DPRINT_BINARY(...)
 #endif
 
 #ifdef WAIT_SERIAL
@@ -31,14 +34,17 @@
 #define MODULE_OUTPUT_Q 16 // quantite de sorties par module 
 
  /* pour run test sur chaque sortie */
-#define RJ_START 1 // premiere sortie a jouer
-#define RJ_END 19 // premiere sortie a jouer
+#define RJ_START 5 // premiere sortie a jouer
+#define RJ_END 5 // premiere sortie a jouer
 
 #define MIN_ON_TIME 10 // temps min leaf active (microsecondes)
-#define MAX_ON_TIME 5000 // temps max leaf active (microsecondes)
+#define MAX_ON_TIME 3000 // temps max leaf active (microsecondes)
 
 #define MIN_OFF_TIME 1000 // temps min leaf inactive (millis) * 10000 2023.8.25
 #define MAX_OFF_TIME 10000 // temps max leaf inactive (millis) * 100000 2023.8.25
+
+#define TEST_TIME_ON 100 // temps ON pour test (micros)
+#define TEST_TIME_OFF 1000 // temps OFF pour test (millis)
 
 #define TOT_LEAVES 601 // nombre total de feuilles // TBC
 
@@ -49,6 +55,7 @@ typedef struct s_leaf {
   u_int32_t     timeOff;
   u_int8_t      leaf_byte; // TBC, en int ou en byte ?
   bool          isActive;
+  bool          testMode;
   elapsedMicros elapsed_on;
   elapsedMillis elapsed_off;
 }               t_leaf;
@@ -58,6 +65,7 @@ typedef struct s_rj {
   u_int8_t  clock;
   t_leaf    leaf[MODULE_SERIE_Q * MODULE_OUTPUT_Q];
   u_int8_t  shift_register[MODULE_SHIFT_REG * MODULE_SERIE_Q];
+  u_int8_t  prev_shift_register[MODULE_SHIFT_REG * MODULE_SERIE_Q]; // etat precedant du shift register
 }             t_rj;
 
 
@@ -68,6 +76,7 @@ void  reset_module(t_rj rj_out, int module_nbr);
 void  leaf_init(void);
 void  leaf_status_update(void);
 void  leaf_status_update1(void);
+void  leaf_test_mode(void);
 
 
 /* utils */
