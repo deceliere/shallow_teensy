@@ -51,6 +51,7 @@ void setup()
   // delay(500);
   // digitalWrite(LED_BUILTIN, LOW);
   leaf_init();
+  // rj_out[2].leaf[0].testMode = 1;
 }
 
 int test_RJ_loop = 1;
@@ -60,7 +61,10 @@ char serial_num = 0;
 void loop()
 {
   leaf_status_update1();
-  // leaf_status_update();
+  // leaf_test_mode();
+  
+  
+  // leaf_status_update(); // old
 
   /**
    * @brief test les leds module par module, en incrmentant et decrementant avec 1 et 2
@@ -107,9 +111,9 @@ void leaf_init(void)
     {
       rj_out[i].leaf[rj_leaf].isActive = 0;
       rj_out[i].leaf[rj_leaf].leaf_byte = 1;
-      rj_out[i].leaf[rj_leaf].leaf_byte <<= (rj_leaf + 1) % 8; // on prepare le bit a la bonne place, qui n'en changera plus
+      rj_out[i].leaf[rj_leaf].leaf_byte <<= rj_leaf % 8; // on prepare le bit a la bonne place, qui n'en changera plus
       #ifdef BLINK_TEST_MODE
-      if (i = 1 && rj_leaf == 0)
+      if (i == 8 && rj_leaf == 0)
         rj_out[i].leaf[rj_leaf].testMode = 1;
       else
         rj_out[i].leaf[rj_leaf].testMode = 0;
@@ -129,6 +133,12 @@ void leaf_init(void)
       DPRINT(rj_out[i].leaf[rj_leaf].timeOn);
       DPRINT(", time off(millis)=");
       DPRINTLN(rj_out[i].leaf[rj_leaf].timeOff);
+      print_binary(rj_out[i].leaf[rj_leaf].leaf_byte);
+      if (rj_out[i].leaf[rj_leaf].testMode)
+      {
+        DPRINT("test_mode.");
+        DPRINTLN(rj_out[i].leaf[rj_leaf].testMode);
+      }
     }
     for (int j = 0; j < MODULE_SHIFT_REG * MODULE_SERIE_Q; j++)
     {
@@ -141,6 +151,9 @@ void leaf_init(void)
 
 void leaf_status_update1(void)
 {
+  #ifdef BLINK_TEST_MODE
+  return ;
+  #else
   if (latch_on >= LATCH_DELAY)
     digitalWrite(LATCH, LOW);
   else
@@ -210,6 +223,7 @@ void leaf_status_update1(void)
   // while(1);
   digitalWrite(LATCH, HIGH);
   latch_on = 0;
+  #endif
 }
 
 void leaf_status_update(void)
