@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include "Entropy.h"
 
-#define DEBUG
-#define WAIT_SERIAL
-#define BLINK_TEST_MODE
+// #define DEBUG
+// #define WAIT_SERIAL
+// #define BLINK_TEST_MODE
 
 #ifdef DEBUG
 #define DPRINT(...) Serial.print(__VA_ARGS__)
@@ -37,14 +37,18 @@
 #define RJ_START 5 // premiere sortie a jouer
 #define RJ_END 5 // premiere sortie a jouer
 
+/* pour le blink test - premiere element a tester */
+#define RJ_TEST_OUT 5
+#define RJ_LEAF_TEST_OUT 0
+#define TEST_TIME_ON 10000 // temps ON pour test (micros)
+#define TEST_TIME_OFF 1000 // temps OFF pour test (millis)
+
 #define MIN_ON_TIME 100 // temps min leaf active (microsecondes)
 #define MAX_ON_TIME 8000 // temps max leaf active (microsecondes)
 
 #define MIN_OFF_TIME 1000 // temps min leaf inactive (millis) * 10000 2023.8.25
 #define MAX_OFF_TIME 10000 // temps max leaf inactive (millis) * 100000 2023.8.25
 
-#define TEST_TIME_ON 10000 // temps ON pour test (micros)
-#define TEST_TIME_OFF 1000 // temps OFF pour test (millis)
 
 #define TOT_LEAVES 601 // nombre total de feuilles // TBC
 

@@ -1,9 +1,9 @@
 #include "shallow.h"
 
-t_rj          rj_out[20];
+t_rj rj_out[20];
 elapsedMicros latch_on = 0;
-int           RJ_test = 1;
-int           RJ_leaf_test = 0;
+int RJ_test = RJ_TEST_OUT;
+int RJ_leaf_test = RJ_LEAF_TEST_OUT;
 
 void setup()
 {
@@ -60,18 +60,17 @@ char serial_num = 0;
 
 void loop()
 {
-  #ifdef BLINK_TEST_MODE
+#ifdef BLINK_TEST_MODE
   leaf_test_mode();
-  #else
+#else
   leaf_status_update1();
-  #endif
-  
-  
+#endif
+
   // leaf_status_update(); // old
 
   /**
    * @brief test les leds module par module, en incrmentant et decrementant avec 1 et 2
-   * 
+   *
   if (Serial.available())
   {
     Serial.println("hello");
@@ -100,10 +99,9 @@ void loop()
 
     test_module(rj_out[rj_testing], 2, 200000);
   */
-  
 
   // for(int i = RJ_START; i <= RJ_END; i++)
-    // test_module(rj_out[i], 2, 200000);
+  // test_module(rj_out[i], 2, 200000);
 }
 
 void leaf_init(void)
@@ -115,17 +113,17 @@ void leaf_init(void)
       rj_out[i].leaf[rj_leaf].isActive = 0;
       rj_out[i].leaf[rj_leaf].leaf_byte = 1;
       rj_out[i].leaf[rj_leaf].leaf_byte <<= rj_leaf % 8; // on prepare le bit a la bonne place, qui n'en changera plus
-      #ifdef BLINK_TEST_MODE
-      if (i == 2 && rj_leaf == 0)
+#ifdef BLINK_TEST_MODE
+      if (i == RJ_test && rj_leaf == RJ_leaf_test)
         rj_out[i].leaf[rj_leaf].testMode = 1;
       else
         rj_out[i].leaf[rj_leaf].testMode = 0;
       rj_out[i].leaf[rj_leaf].timeOn = TEST_TIME_ON;
       rj_out[i].leaf[rj_leaf].timeOff = TEST_TIME_OFF;
-      #else
+#else
       rj_out[i].leaf[rj_leaf].timeOn = random(MIN_ON_TIME, MAX_ON_TIME);
       rj_out[i].leaf[rj_leaf].timeOff = random(MIN_OFF_TIME, MAX_OFF_TIME);
-      #endif
+#endif
       rj_out[i].leaf[rj_leaf].elapsed_off = 0;
       rj_out[i].leaf[rj_leaf].elapsed_on = 0;
       DPRINT("rj.");
@@ -145,18 +143,17 @@ void leaf_init(void)
     }
     for (int j = 0; j < MODULE_SHIFT_REG * MODULE_SERIE_Q; j++)
     {
-      rj_out[i].shift_register[j] = 0; // mise a zero de tous les shift registers
+      rj_out[i].shift_register[j] = 0;      // mise a zero de tous les shift registers
       rj_out[i].prev_shift_register[j] = 0; // mise a zero de tous les shift registers
     }
   }
 }
 
-
 void leaf_status_update1(void)
 {
-  #ifdef BLINK_TEST_MODE
-  return ;
-  #else
+#ifdef BLINK_TEST_MODE
+  return;
+#else
   if (latch_on >= LATCH_DELAY)
     digitalWrite(LATCH, LOW);
   else
@@ -213,7 +210,7 @@ void leaf_status_update1(void)
       {
         push = 1;
         break;
-      }    
+      }
     if (push)
       for (int current_shift_reg = 3; current_shift_reg >= 0; current_shift_reg--)
       {
@@ -226,7 +223,7 @@ void leaf_status_update1(void)
   // while(1);
   digitalWrite(LATCH, HIGH);
   latch_on = 0;
-  #endif
+#endif
 }
 
 void leaf_status_update(void)
@@ -312,46 +309,44 @@ void leaf_test_mode(void)
   for (int i = 1; i <= RJ_TOT; i++)
   {
     for (int rj_leaf = (SHIFT_REG_OUTPUT_Q * MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; rj_leaf >= 0; rj_leaf--)
-    { 
+    {
       if (rj_out[i].leaf[rj_leaf].elapsed_off >= rj_out[i].leaf[rj_leaf].timeOff && !rj_out[i].leaf[rj_leaf].isActive && rj_out[i].leaf[rj_leaf].testMode)
       {
         rj_out[i].leaf[rj_leaf].isActive = 1;
-        // rj_out[i].leaf[rj_leaf].leaf_byte = 1; // mettre dans init puisque jamais modifie?
-        // rj_out[i].leaf[rj_leaf].leaf_byte <<= (rj_leaf + 1) % 8; // mettre dans init puisque jamais modifie?
         rj_out[i].shift_register[rj_leaf / SHIFT_REG_OUTPUT_Q] |= rj_out[i].leaf[rj_leaf].leaf_byte;
-        rj_out[i].leaf[rj_leaf].timeOff = 1000;
+        rj_out[i].leaf[rj_leaf].timeOff = TEST_TIME_OFF;
         rj_out[i].leaf[rj_leaf].elapsed_on = 0;
-        DPRINT("rj.");
-        DPRINT(i);
-        DPRINT(" shift_reg.");
-        DPRINT(rj_leaf / MODULE_SHIFT_REG * MODULE_SERIE_Q);
-        DPRINT(" reg_leaf.");
-        DPRINT(rj_leaf % 8);
-        DPRINT(" rj_leaf.");
-        DPRINT(rj_leaf);
-        DPRINTLN(" ON");
-        DPRINT("result ON=");
-        DPRINT_BINARY(rj_out[i].shift_register[rj_leaf / SHIFT_REG_OUTPUT_Q]);
-        DPRINTLN();
+        // DPRINT("rj.");
+        // DPRINT(i);
+        // DPRINT(" shift_reg.");
+        // DPRINT(rj_leaf / MODULE_SHIFT_REG * MODULE_SERIE_Q);
+        // DPRINT(" reg_leaf.");
+        // DPRINT(rj_leaf % 8);
+        // DPRINT(" rj_leaf.");
+        // DPRINT(rj_leaf);
+        // DPRINTLN(" ON");
+        // DPRINT("result ON=");
+        // DPRINT_BINARY(rj_out[i].shift_register[rj_leaf / SHIFT_REG_OUTPUT_Q]);
+        // DPRINTLN();
       }
-      else if (rj_out[i].leaf[rj_leaf].elapsed_on >= rj_out[i].leaf[rj_leaf].timeOn && rj_out[i].leaf[rj_leaf].isActive && rj_out[i].leaf[rj_leaf].testMode)
+      else if (rj_out[i].leaf[rj_leaf].elapsed_on >= rj_out[i].leaf[rj_leaf].timeOn && rj_out[i].leaf[rj_leaf].isActive)
       {
         rj_out[i].leaf[rj_leaf].isActive = 0;
         rj_out[i].shift_register[rj_leaf / SHIFT_REG_OUTPUT_Q] &= ~rj_out[i].leaf[rj_leaf].leaf_byte;
         rj_out[i].leaf[rj_leaf].timeOn = TEST_TIME_ON;
         rj_out[i].leaf[rj_leaf].elapsed_off = 0;
-        DPRINT("rj.");
-        DPRINT(i);
-        DPRINT(" shift_reg.");
-        DPRINT(rj_leaf / MODULE_SHIFT_REG * MODULE_SERIE_Q);
-        DPRINT(" reg_leaf.");
-        DPRINT(rj_leaf % 8);
-        DPRINT(" rj_leaf.");
-        DPRINT(rj_leaf);
-        DPRINTLN(" OFF");
-        DPRINT("result OFF=");
-        DPRINT_BINARY(rj_out[i].shift_register[rj_leaf / SHIFT_REG_OUTPUT_Q]);
-        DPRINTLN();
+        // DPRINT("rj.");
+        // DPRINT(i);
+        // DPRINT(" shift_reg.");
+        // DPRINT(rj_leaf / MODULE_SHIFT_REG * MODULE_SERIE_Q);
+        // DPRINT(" reg_leaf.");
+        // DPRINT(rj_leaf % 8);
+        // DPRINT(" rj_leaf.");
+        // DPRINT(rj_leaf);
+        // DPRINTLN(" OFF");
+        // DPRINT("result OFF=");
+        // DPRINT_BINARY(rj_out[i].shift_register[rj_leaf / SHIFT_REG_OUTPUT_Q]);
+        // DPRINTLN();
       }
     }
     bool push = 0;
@@ -360,7 +355,7 @@ void leaf_test_mode(void)
       {
         push = 1;
         break;
-      }    
+      }
     if (push)
       for (int current_shift_reg = 3; current_shift_reg >= 0; current_shift_reg--)
       {
@@ -376,32 +371,59 @@ void leaf_test_mode(void)
   test_mode_increment();
 }
 
-void  test_mode_increment(void)
+void test_mode_increment(void)
 {
   char n;
+
   if (Serial.available())
   {
+    rj_out[RJ_test].leaf[RJ_leaf_test].testMode = 0;
     n = Serial.read();
     switch (n)
     {
-    case '2':
-      DPRINTLN("2 pressed");
-      if (RJ_leaf_test == 31)
-        RJ_leaf_test = 0;
-      if (RJ_test == 19)
-        RJ_test = 1;
-      if (RJ_test <= 19 && RJ_leaf_test < 31)
-        RJ_leaf_test++;
-
+    case '1':
+      if (RJ_leaf_test > 0)
+        RJ_leaf_test--;
+      else if (!RJ_leaf_test)
+      {
+        RJ_leaf_test = 31;
+        if (RJ_test > 1)
+          RJ_test--;
+        else
+          RJ_test = RJ_TOT;
+      }
+      DPRINT("test leaf:");
+      DPRINT(" RJ=");
+      DPRINT(RJ_test);
+      DPRINT(" leaf=");
+      DPRINTLN(RJ_leaf_test);
       break;
-    
+
+    case '2':
+      if (RJ_leaf_test < 31)
+        RJ_leaf_test++;
+      else if (RJ_leaf_test == 31)
+      {
+        RJ_leaf_test = 0;
+        if (RJ_test < RJ_TOT)
+          RJ_test++;
+        else
+          RJ_test = 1;
+      }
+      DPRINT("test leaf:");
+      DPRINT("RJ=");
+      DPRINT(RJ_test);
+      DPRINT(" leaf=");
+      DPRINTLN(RJ_leaf_test);
+      break;
+
     default:
       break;
     }
+    rj_out[RJ_test].leaf[RJ_leaf_test].testMode = 1;
   }
-    // for (int i = 1; i <= RJ_TOT; i++)
-      // for (int rj_leaf = (SHIFT_REG_OUTPUT_Q * MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; rj_leaf >= 0; rj_leaf--)
-
+  // for (int i = 1; i <= RJ_TOT; i++)
+  // for (int rj_leaf = (SHIFT_REG_OUTPUT_Q * MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; rj_leaf >= 0; rj_leaf--)
 }
 
 void reset_module(t_rj rj_out, int module_nbr)
