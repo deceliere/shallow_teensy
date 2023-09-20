@@ -60,8 +60,11 @@ char serial_num = 0;
 
 void loop()
 {
+  #ifdef BLINK_TEST_MODE
+  leaf_test_mode();
+  #else
   leaf_status_update1();
-  // leaf_test_mode();
+  #endif
   
   
   // leaf_status_update(); // old
@@ -113,7 +116,7 @@ void leaf_init(void)
       rj_out[i].leaf[rj_leaf].leaf_byte = 1;
       rj_out[i].leaf[rj_leaf].leaf_byte <<= rj_leaf % 8; // on prepare le bit a la bonne place, qui n'en changera plus
       #ifdef BLINK_TEST_MODE
-      if (i == 8 && rj_leaf == 0)
+      if (i == 2 && rj_leaf == 0)
         rj_out[i].leaf[rj_leaf].testMode = 1;
       else
         rj_out[i].leaf[rj_leaf].testMode = 0;
@@ -370,17 +373,19 @@ void leaf_test_mode(void)
   // while(1);
   digitalWrite(LATCH, HIGH);
   latch_on = 0;
+  test_mode_increment();
 }
 
 void  test_mode_increment(void)
 {
-  int n;
+  char n;
   if (Serial.available())
   {
     n = Serial.read();
     switch (n)
     {
-    case 2:
+    case '2':
+      DPRINTLN("2 pressed");
       if (RJ_leaf_test == 31)
         RJ_leaf_test = 0;
       if (RJ_test == 19)

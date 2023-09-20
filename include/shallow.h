@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include "Entropy.h"
 
-// #define DEBUG
-// #define WAIT_SERIAL
-// #define BLINK_TEST_MODE
+#define DEBUG
+#define WAIT_SERIAL
+#define BLINK_TEST_MODE
 
 #ifdef DEBUG
 #define DPRINT(...) Serial.print(__VA_ARGS__)
@@ -74,15 +74,18 @@ void  shiftOut_lsbFirst_rd(uint8_t dataPin, uint8_t clockPin, uint8_t value);
 void  test_module(t_rj rj_out, int module_nbr, int del);
 void  reset_module(t_rj rj_out, int module_nbr);
 void  leaf_init(void);
-void  leaf_status_update(void);
+void  leaf_status_update(void); //obsolete
 void  leaf_status_update1(void);
 void  leaf_test_mode(void);
+void  test_mode_increment(void);
+
 
 
 /* utils */
 void  led_blink(int time_on, int time_off);
 void  print_binary(int num);
 int   bytes_count(int num);
+
 
 
 // void  u_int8_to_binary(uint8_t num); // nul, WIP
