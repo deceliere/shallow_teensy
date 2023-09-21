@@ -3,7 +3,8 @@
 
 // #define DEBUG
 // #define WAIT_SERIAL
-// #define BLINK_TEST_MODE
+// #define TEST_MODE 1 // blink each item, to be incremented through seriak
+// #define TEST_MODE 2 // test all leds from RJ_START to RJ_END
 
 #ifdef DEBUG
 #define DPRINT(...) Serial.print(__VA_ARGS__)
@@ -34,8 +35,8 @@
 #define MODULE_OUTPUT_Q 16 // quantite de sorties par module 
 
  /* pour run test sur chaque sortie */
-#define RJ_START 5 // premiere sortie a jouer
-#define RJ_END 5 // premiere sortie a jouer
+#define RJ_START 1 // premiere sortie a jouer
+#define RJ_END 19 // premiere sortie a jouer
 
 /* pour le blink test - premiere element a tester */
 #define RJ_TEST_OUT 5

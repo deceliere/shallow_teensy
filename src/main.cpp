@@ -10,9 +10,7 @@ void setup()
   Serial.begin(115200);
   SERIAL_WAIT;
   for (int i = 0; i < 42; i++)
-  {
     pinMode(i, OUTPUT);
-  }
   rj_out[0].data = 0;
   rj_out[0].clock = 0;
   for (u_int8_t i = 1; i <= 19; i++)
@@ -20,6 +18,7 @@ void setup()
     rj_out[i].data = i * 2;
     rj_out[i].clock = (i * 2) + 1;
   }
+#ifdef DEBUG
   for (u_int8_t i = 1; i <= 19; i++) // debug le numero de chaque RJ output data + clock
   {
     DPRINT("rj.out");
@@ -29,6 +28,7 @@ void setup()
     DPRINT(" | clock=");
     DPRINTLN(rj_out[i].clock);
   }
+#endif
   for (int x = 0; x < 3; x++) // reset 3x de suite toutes les sorties, par paranoia
   {
     for (int i = 1; i <= RJ_TOT; i++)
@@ -60,8 +60,14 @@ char serial_num = 0;
 
 void loop()
 {
-#ifdef BLINK_TEST_MODE
-  leaf_test_mode();
+#ifdef TEST_MODE
+  #if TEST_MODE == 1
+    leaf_test_mode();
+  #elif TEST_MODE == 2
+    for (int i = RJ_START; i <= RJ_END; i++)
+      test_module(rj_out[i], 2, 2000);
+  #else
+  #endif
 #else
   leaf_status_update1();
 #endif
@@ -97,11 +103,8 @@ void loop()
     }
   }
 
-    test_module(rj_out[rj_testing], 2, 200000);
+  // test_module(rj_out[rj_testing], 2, 200000);
   */
-
-  // for(int i = RJ_START; i <= RJ_END; i++)
-  // test_module(rj_out[i], 2, 200000);
 }
 
 void leaf_init(void)
@@ -113,13 +116,16 @@ void leaf_init(void)
       rj_out[i].leaf[rj_leaf].isActive = 0;
       rj_out[i].leaf[rj_leaf].leaf_byte = 1;
       rj_out[i].leaf[rj_leaf].leaf_byte <<= rj_leaf % 8; // on prepare le bit a la bonne place, qui n'en changera plus
-#ifdef BLINK_TEST_MODE
-      if (i == RJ_test && rj_leaf == RJ_leaf_test)
-        rj_out[i].leaf[rj_leaf].testMode = 1;
-      else
-        rj_out[i].leaf[rj_leaf].testMode = 0;
-      rj_out[i].leaf[rj_leaf].timeOn = TEST_TIME_ON;
-      rj_out[i].leaf[rj_leaf].timeOff = TEST_TIME_OFF;
+#ifdef TEST_MODE
+  #if TEST_MODE == 1
+        if (i == RJ_test && rj_leaf == RJ_leaf_test)
+          rj_out[i].leaf[rj_leaf].testMode = 1;
+        else
+          rj_out[i].leaf[rj_leaf].testMode = 0;
+        rj_out[i].leaf[rj_leaf].timeOn = TEST_TIME_ON;
+        rj_out[i].leaf[rj_leaf].timeOff = TEST_TIME_OFF;
+  #else
+  #endif
 #else
       rj_out[i].leaf[rj_leaf].timeOn = random(MIN_ON_TIME, MAX_ON_TIME);
       rj_out[i].leaf[rj_leaf].timeOff = random(MIN_OFF_TIME, MAX_OFF_TIME);
@@ -151,8 +157,11 @@ void leaf_init(void)
 
 void leaf_status_update1(void)
 {
-#ifdef BLINK_TEST_MODE
-  return;
+#ifdef TEST_MODE
+  #if TEST_MODE == 1
+    return;
+  #else
+  #endif
 #else
   if (latch_on >= LATCH_DELAY)
     digitalWrite(LATCH, LOW);
