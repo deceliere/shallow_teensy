@@ -1,10 +1,22 @@
 #include <Arduino.h>
 #include "Entropy.h"
 
+/* MACROS DE TEST */
+
 // #define DEBUG
 // #define WAIT_SERIAL
+
 // #define TEST_MODE 1 // blink each item, to be incremented through seriak
+/* 
+1 - decrement led
+2 - increment led
+3 - decrement RJ
+4 - increment RJ
+*/
 // #define TEST_MODE 2 // test all leds from RJ_START to RJ_END
+#define HIDE_17_32 // pour le test sur panneau led - met a zero les led de 17 a 32. pas necessaire sur l'install
+
+
 
 #ifdef DEBUG
 #define DPRINT(...) Serial.print(__VA_ARGS__)
@@ -30,9 +42,8 @@
 
 #define RJ_TOT 19 // quantite de sorties RJ actives
 #define MODULE_SHIFT_REG 2 // quantite de shift reg par module
-#define MODULE_SERIE_Q 2 // quantite de modules en serie, au bout de chaque rj12
+#define MODULE_SERIE_Q 1 // quantite de modules en serie, au bout de chaque rj12
 #define SHIFT_REG_OUTPUT_Q 8 // quantite de sorties par module 
-#define MODULE_OUTPUT_Q 16 // quantite de sorties par module 
 
  /* pour run test sur chaque sortie */
 #define RJ_START 1 // premiere sortie a jouer
@@ -44,14 +55,14 @@
 #define TEST_TIME_ON 10000 // temps ON pour test (micros)
 #define TEST_TIME_OFF 1000 // temps OFF pour test (millis)
 
-#define MIN_ON_TIME 100 // temps min leaf active (microsecondes)
-#define MAX_ON_TIME 8000 // temps max leaf active (microsecondes)
+#define MIN_ON_TIME 100 // temps min leaf active (microsecondes) * 100 2023.9.22
+#define MAX_ON_TIME 8000 // temps max leaf active (microsecondes) * 8000 2023.9.22
 
-#define MIN_OFF_TIME 1000 // temps min leaf inactive (millis) * 10000 2023.8.25
-#define MAX_OFF_TIME 10000 // temps max leaf inactive (millis) * 100000 2023.8.25
+#define MIN_OFF_TIME 1000 // temps min leaf inactive (millis) * 1000 2023.9.22
+#define MAX_OFF_TIME 10000 // temps max leaf inactive (millis) * 100000 2023.9.22
 
 
-#define TOT_LEAVES 601 // nombre total de feuilles // TBC
+// #define TOT_LEAVES 601 // nombre total de feuilles // TBC
 
 
 
@@ -68,7 +79,7 @@ typedef struct s_leaf {
 typedef struct s_rj {
   u_int8_t  data;
   u_int8_t  clock;
-  t_leaf    leaf[MODULE_SERIE_Q * MODULE_OUTPUT_Q];
+  t_leaf    leaf[SHIFT_REG_OUTPUT_Q * MODULE_SHIFT_REG * MODULE_SERIE_Q];
   u_int8_t  shift_register[MODULE_SHIFT_REG * MODULE_SERIE_Q];
   u_int8_t  prev_shift_register[MODULE_SHIFT_REG * MODULE_SERIE_Q]; // etat precedant du shift register
 }             t_rj;

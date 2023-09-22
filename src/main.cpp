@@ -7,6 +7,7 @@ int RJ_leaf_test = RJ_LEAF_TEST_OUT;
 
 void setup()
 {
+  Entropy.Initialize();
   Serial.begin(115200);
   SERIAL_WAIT;
   for (int i = 0; i < 42; i++)
@@ -54,9 +55,9 @@ void setup()
   // rj_out[2].leaf[0].testMode = 1;
 }
 
-int test_RJ_loop = 1;
-int rj_testing = 1;
-char serial_num = 0;
+// int test_RJ_loop = 1;
+// int rj_testing = 1;
+// char serial_num = 0;
 
 void loop()
 {
@@ -127,8 +128,8 @@ void leaf_init(void)
   #else
   #endif
 #else
-      rj_out[i].leaf[rj_leaf].timeOn = random(MIN_ON_TIME, MAX_ON_TIME);
-      rj_out[i].leaf[rj_leaf].timeOff = random(MIN_OFF_TIME, MAX_OFF_TIME);
+      rj_out[i].leaf[rj_leaf].timeOn = Entropy.random(MIN_ON_TIME, MAX_ON_TIME);
+      rj_out[i].leaf[rj_leaf].timeOff = Entropy.random(MIN_OFF_TIME, MAX_OFF_TIME);
 #endif
       rj_out[i].leaf[rj_leaf].elapsed_off = 0;
       rj_out[i].leaf[rj_leaf].elapsed_on = 0;
@@ -178,12 +179,12 @@ void leaf_status_update1(void)
         // rj_out[i].leaf[rj_leaf].leaf_byte = 1; // mettre dans init puisque jamais modifie?
         // rj_out[i].leaf[rj_leaf].leaf_byte <<= (rj_leaf + 1) % 8; // mettre dans init puisque jamais modifie?
         rj_out[i].shift_register[rj_leaf / SHIFT_REG_OUTPUT_Q] |= rj_out[i].leaf[rj_leaf].leaf_byte;
-        rj_out[i].leaf[rj_leaf].timeOff = random(MIN_OFF_TIME, MAX_OFF_TIME);
+        rj_out[i].leaf[rj_leaf].timeOff = Entropy.random(MIN_OFF_TIME, MAX_OFF_TIME);
         rj_out[i].leaf[rj_leaf].elapsed_on = 0;
         DPRINT("rj.");
         DPRINT(i);
         DPRINT(" shift_reg.");
-        DPRINT(rj_leaf / MODULE_SHIFT_REG * MODULE_SERIE_Q);
+        DPRINT(rj_leaf / SHIFT_REG_OUTPUT_Q);
         DPRINT(" reg_leaf.");
         DPRINT(rj_leaf % 8);
         DPRINT(" rj_leaf.");
@@ -197,12 +198,12 @@ void leaf_status_update1(void)
       {
         rj_out[i].leaf[rj_leaf].isActive = 0;
         rj_out[i].shift_register[rj_leaf / SHIFT_REG_OUTPUT_Q] &= ~rj_out[i].leaf[rj_leaf].leaf_byte;
-        rj_out[i].leaf[rj_leaf].timeOn = random(MIN_ON_TIME, MAX_ON_TIME);
+        rj_out[i].leaf[rj_leaf].timeOn = Entropy.random(MIN_ON_TIME, MAX_ON_TIME);
         rj_out[i].leaf[rj_leaf].elapsed_off = 0;
         DPRINT("rj.");
         DPRINT(i);
         DPRINT(" shift_reg.");
-        DPRINT(rj_leaf / MODULE_SHIFT_REG * MODULE_SERIE_Q);
+        DPRINT(rj_leaf / SHIFT_REG_OUTPUT_Q);
         DPRINT(" reg_leaf.");
         DPRINT(rj_leaf % 8);
         DPRINT(" rj_leaf.");
@@ -214,101 +215,35 @@ void leaf_status_update1(void)
       }
     }
     bool push = 0;
-    for (int current_shift_reg = 3; current_shift_reg >= 0; current_shift_reg--)
+    for (int current_shift_reg = (MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; current_shift_reg >= 0; current_shift_reg--)
       if (rj_out[i].shift_register[current_shift_reg] != rj_out[i].prev_shift_register[current_shift_reg]) // pour tenter d'envoyer uniquement les changement d'etat du shift register
       {
         push = 1;
         break;
       }
     if (push)
-      for (int current_shift_reg = 3; current_shift_reg >= 0; current_shift_reg--)
+    {
+      #ifdef HIDE_17_32
+      shiftOut_msbFirst(rj_out[i].data, rj_out[i].clock, 0);
+      shiftOut_msbFirst(rj_out[i].data, rj_out[i].clock, 0);
+      #else
+      #endif
+      for (int current_shift_reg = (MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; current_shift_reg >= 0; current_shift_reg--)
       {
         shiftOut_msbFirst_rd(rj_out[i].data, rj_out[i].clock, rj_out[i].shift_register[current_shift_reg]);
         rj_out[i].prev_shift_register[current_shift_reg] = rj_out[i].shift_register[current_shift_reg];
       }
-  }
-  // DPRINT("cycles=");
-  // DPRINTLN(ARM_DWT_CYCCNT - t);
-  // while(1);
-  digitalWrite(LATCH, HIGH);
-  latch_on = 0;
-#endif
-}
-
-void leaf_status_update(void)
-{
-  if (latch_on >= LATCH_DELAY)
-    digitalWrite(LATCH, LOW);
-  else
-    return;
-  for (int i = 1; i <= RJ_TOT; i++)
-  {
-    // for (int j = 0; j < MODULE_SHIFT_REG * MODULE_SERIE_Q; j++)
-    // rj_out[i].shift_register[j] = 0;
-    for (int current_shift_reg = (MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; current_shift_reg >= 0; current_shift_reg--)
-    {
-      for (int rj_leaf = 0; rj_leaf < SHIFT_REG_OUTPUT_Q; rj_leaf++)
-      {
-        if (rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].elapsed_off >= rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].timeOff && !rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].isActive) // changer pour est plus grand que time off && plus petit que time on ? et enlever !active ?
-        {
-          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].isActive = 1;
-          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte = 1;
-          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte <<= rj_leaf;
-          DPRINT("binary on=");
-          print_binary(rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte);
-          // DPRINT("ON byte=");
-          // DPRINTLN(rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte);
-          rj_out[i].shift_register[current_shift_reg] |= rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte;
-          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].timeOff = random(MIN_OFF_TIME, MAX_OFF_TIME);
-          DPRINT("rj.");
-          DPRINT(i);
-          DPRINT(" shift_reg.");
-          DPRINT(current_shift_reg);
-          DPRINT(" leaf.");
-          DPRINT(rj_leaf);
-          DPRINT(" aka.");
-          DPRINT(rj_leaf * (current_shift_reg + 1));
-          DPRINTLN(" ON");
-          DPRINT("result ON=");
-          print_binary(rj_out[i].shift_register[current_shift_reg]);
-          DPRINTLN();
-          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].elapsed_on = 0;
-        }
-        else if (rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].elapsed_on >= rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].timeOn && rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].isActive)
-        {
-          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].isActive = 0;
-          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte = 1;
-          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte <<= rj_leaf;
-          DPRINT("binary off=");
-          print_binary(rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte);
-          rj_out[i].shift_register[current_shift_reg] &= ~rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].leaf_byte;
-          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].timeOn = random(MIN_ON_TIME, MAX_ON_TIME);
-          DPRINT("rj.");
-          DPRINT(i);
-          DPRINT(" shift_reg.");
-          DPRINT(current_shift_reg);
-          DPRINT(" leaf.");
-          DPRINT(rj_leaf * (current_shift_reg + 1));
-          DPRINT(" aka.");
-          DPRINT(rj_leaf);
-          DPRINTLN(" OFF");
-          DPRINT("result OFF=");
-          print_binary(rj_out[i].shift_register[current_shift_reg]);
-          DPRINTLN();
-          rj_out[i].leaf[rj_leaf * (current_shift_reg + 1)].elapsed_off = 0;
-        }
-      }
-      // if (bytes_count(rj_out[i].shift_register[current_shift_reg]) > 1) // test pour voir si deux bits peuvent bien s'allumer
-      // print_binary(rj_out[i].shift_register[current_shift_reg]);
-      shiftOut_msbFirst_rd(rj_out[i].data, rj_out[i].clock, rj_out[i].shift_register[current_shift_reg]);
     }
   }
   digitalWrite(LATCH, HIGH);
   latch_on = 0;
-  // delayMicroseconds(LATCH_DELAY); // a enlever si elapsed fonctionne
+  // DPRINT("cycles=");
+  // DPRINTLN(ARM_DWT_CYCCNT - t);
+  // while(1);
+#endif
 }
 
-void leaf_test_mode(void)
+void leaf_test_mode(void) // blink each led until increment through Serial
 {
   if (latch_on >= LATCH_DELAY)
     digitalWrite(LATCH, LOW);
@@ -359,18 +294,25 @@ void leaf_test_mode(void)
       }
     }
     bool push = 0;
-    for (int current_shift_reg = 3; current_shift_reg >= 0; current_shift_reg--)
+    for (int current_shift_reg = (MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; current_shift_reg >= 0; current_shift_reg--)
       if (rj_out[i].shift_register[current_shift_reg] != rj_out[i].prev_shift_register[current_shift_reg]) // pour tenter d'envoyer uniquement les changement d'etat du shift register
       {
         push = 1;
         break;
       }
     if (push)
-      for (int current_shift_reg = 3; current_shift_reg >= 0; current_shift_reg--)
+    {
+      #ifdef HIDE_17_32
+      shiftOut_msbFirst(rj_out[i].data, rj_out[i].clock, 0);
+      shiftOut_msbFirst(rj_out[i].data, rj_out[i].clock, 0);
+      #else
+      #endif
+      for (int current_shift_reg = (MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; current_shift_reg >= 0; current_shift_reg--)
       {
         shiftOut_msbFirst_rd(rj_out[i].data, rj_out[i].clock, rj_out[i].shift_register[current_shift_reg]);
         rj_out[i].prev_shift_register[current_shift_reg] = rj_out[i].shift_register[current_shift_reg];
       }
+    }
   }
   // DPRINT("cycles=");
   // DPRINTLN(ARM_DWT_CYCCNT - t);
@@ -395,7 +337,7 @@ void test_mode_increment(void)
         RJ_leaf_test--;
       else if (!RJ_leaf_test)
       {
-        RJ_leaf_test = 31;
+        RJ_leaf_test = (SHIFT_REG_OUTPUT_Q * MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1;
         if (RJ_test > 1)
           RJ_test--;
         else
@@ -409,9 +351,9 @@ void test_mode_increment(void)
       break;
 
     case '2':
-      if (RJ_leaf_test < 31)
+      if (RJ_leaf_test < (SHIFT_REG_OUTPUT_Q * MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1)
         RJ_leaf_test++;
-      else if (RJ_leaf_test == 31)
+      else if (RJ_leaf_test == (SHIFT_REG_OUTPUT_Q * MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1)
       {
         RJ_leaf_test = 0;
         if (RJ_test < RJ_TOT)
@@ -426,13 +368,26 @@ void test_mode_increment(void)
       DPRINTLN(RJ_leaf_test);
       break;
 
+    case '3':
+      if (RJ_test == 1)
+        RJ_test = RJ_TOT;
+      else
+        RJ_test--;
+      break;
+
+    case '4':
+      if (RJ_test == RJ_TOT)
+        RJ_test = 1;
+      else
+        RJ_test++;
+      break;
+      
+
     default:
       break;
     }
     rj_out[RJ_test].leaf[RJ_leaf_test].testMode = 1;
   }
-  // for (int i = 1; i <= RJ_TOT; i++)
-  // for (int rj_leaf = (SHIFT_REG_OUTPUT_Q * MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; rj_leaf >= 0; rj_leaf--)
 }
 
 void reset_module(t_rj rj_out, int module_nbr)
@@ -445,6 +400,7 @@ void reset_module(t_rj rj_out, int module_nbr)
     for (int y = totalShiftreg; y > 0; y--)
       shiftOut_msbFirst_rd(rj_out.data, rj_out.clock, 0);
     digitalWrite(LATCH, HIGH);
+    delayMicroseconds(LATCH_DELAY);
   }
 }
 
