@@ -62,13 +62,13 @@ void setup()
 void loop()
 {
 #ifdef TEST_MODE
-  #if TEST_MODE == 1
-    leaf_test_mode();
-  #elif TEST_MODE == 2
-    for (int i = RJ_START; i <= RJ_END; i++)
-      test_module(rj_out[i], 2, 2000);
-  #else
-  #endif
+#if TEST_MODE == 1
+  leaf_test_mode();
+#elif TEST_MODE == 2
+  for (int i = RJ_START; i <= RJ_END; i++)
+    test_module(rj_out[i], 2, 2000);
+#else
+#endif
 #else
   leaf_status_update1();
 #endif
@@ -118,15 +118,15 @@ void leaf_init(void)
       rj_out[i].leaf[rj_leaf].leaf_byte = 1;
       rj_out[i].leaf[rj_leaf].leaf_byte <<= rj_leaf % 8; // on prepare le bit a la bonne place, qui n'en changera plus
 #ifdef TEST_MODE
-  #if TEST_MODE == 1
-        if (i == RJ_test && rj_leaf == RJ_leaf_test)
-          rj_out[i].leaf[rj_leaf].testMode = 1;
-        else
-          rj_out[i].leaf[rj_leaf].testMode = 0;
-        rj_out[i].leaf[rj_leaf].timeOn = TEST_TIME_ON;
-        rj_out[i].leaf[rj_leaf].timeOff = TEST_TIME_OFF;
-  #else
-  #endif
+#if TEST_MODE == 1
+      if (i == RJ_test && rj_leaf == RJ_leaf_test)
+        rj_out[i].leaf[rj_leaf].testMode = 1;
+      else
+        rj_out[i].leaf[rj_leaf].testMode = 0;
+      rj_out[i].leaf[rj_leaf].timeOn = TEST_TIME_ON;
+      rj_out[i].leaf[rj_leaf].timeOff = TEST_TIME_OFF;
+#else
+#endif
 #else
       rj_out[i].leaf[rj_leaf].timeOn = Entropy.random(MIN_ON_TIME, MAX_ON_TIME);
       rj_out[i].leaf[rj_leaf].timeOff = Entropy.random(MIN_OFF_TIME, MAX_OFF_TIME);
@@ -159,10 +159,10 @@ void leaf_init(void)
 void leaf_status_update1(void)
 {
 #ifdef TEST_MODE
-  #if TEST_MODE == 1
-    return;
-  #else
-  #endif
+#if TEST_MODE == 1
+  return;
+#else
+#endif
 #else
   if (latch_on >= LATCH_DELAY)
     digitalWrite(LATCH, LOW);
@@ -223,11 +223,11 @@ void leaf_status_update1(void)
       }
     if (push)
     {
-      #ifdef HIDE_17_32
+#ifdef HIDE_17_32
       shiftOut_msbFirst(rj_out[i].data, rj_out[i].clock, 0);
       shiftOut_msbFirst(rj_out[i].data, rj_out[i].clock, 0);
-      #else
-      #endif
+#else
+#endif
       for (int current_shift_reg = (MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; current_shift_reg >= 0; current_shift_reg--)
       {
         shiftOut_msbFirst_rd(rj_out[i].data, rj_out[i].clock, rj_out[i].shift_register[current_shift_reg]);
@@ -302,11 +302,11 @@ void leaf_test_mode(void) // blink each led until increment through Serial
       }
     if (push)
     {
-      #ifdef HIDE_17_32
+#ifdef HIDE_17_32
       shiftOut_msbFirst(rj_out[i].data, rj_out[i].clock, 0);
       shiftOut_msbFirst(rj_out[i].data, rj_out[i].clock, 0);
-      #else
-      #endif
+#else
+#endif
       for (int current_shift_reg = (MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; current_shift_reg >= 0; current_shift_reg--)
       {
         shiftOut_msbFirst_rd(rj_out[i].data, rj_out[i].clock, rj_out[i].shift_register[current_shift_reg]);
@@ -381,7 +381,6 @@ void test_mode_increment(void)
       else
         RJ_test++;
       break;
-      
 
     default:
       break;

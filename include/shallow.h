@@ -6,7 +6,7 @@
 // #define DEBUG
 // #define WAIT_SERIAL
 
-// #define TEST_MODE 1 // blink each item, to be incremented through seriak
+// #define TEST_MODE 1 // blink each item, to be incremented through serial
 /* 
 1 - decrement led
 2 - increment led
