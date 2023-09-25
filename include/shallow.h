@@ -35,7 +35,7 @@
 #endif
 
 #define LATCH 40 // common latch pin
-#define RELAY 41 // relay pour alimentation 12v pin
+#define RELAY 41 // relay pour alimentation
 
 #define LATCH_DELAY 100 // temps min d'activation du latch pour un signal correct (micros)
 #define CYCLES_MULTIPLY 3 // facteur de duree ON des signaux data + clock pour un signal correct

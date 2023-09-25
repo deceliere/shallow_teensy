@@ -389,9 +389,19 @@ void test_mode_increment(void)
   }
 }
 
+/**
+ * @brief test reset modules (write 0 and latch)
+ *
+ * @param rj_out which RJ
+ * @param module_nbr n modules in serie (min = 1)
+ */
 void reset_module(t_rj rj_out, int module_nbr)
 {
-  int totalShiftreg = module_nbr * 2;
+  int totalShiftreg; 
+  
+  if (module_nbr < 1)
+    module_nbr = 1;
+  totalShiftreg = module_nbr * 2;
 
   for (int i = 0; i < 8 * totalShiftreg; i++)
   {
