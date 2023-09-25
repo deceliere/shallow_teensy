@@ -15,8 +15,10 @@
 */
 // #define TEST_MODE 2 // test all leds from RJ_START to RJ_END
 #define HIDE_17_32 // pour le test sur panneau led - met a zero les led de 17 a 32. pas necessaire sur l'install
+// #define BYPASS_RELAY_SECURITY // ne checke pas que les deux teensy soient actifs
 
-
+//////////////////////////////
+//////////////////////////////
 
 #ifdef DEBUG
 #define DPRINT(...) Serial.print(__VA_ARGS__)
@@ -61,6 +63,9 @@
 #define MIN_OFF_TIME 1000 // temps min leaf inactive (millis) * 1000 2023.9.22
 #define MAX_OFF_TIME 10000 // temps max leaf inactive (millis) * 100000 2023.9.22
 
+#define INPUT_CHECK 0
+#define OUTPUT_CHECK 1
+
 
 // #define TOT_LEAVES 601 // nombre total de feuilles // TBC
 
@@ -94,6 +99,7 @@ void  leaf_status_update(void); //obsolete
 void  leaf_status_update1(void);
 void  leaf_test_mode(void);
 void  test_mode_increment(void);
+void  relay_and_check(void);
 
 
 

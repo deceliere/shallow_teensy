@@ -10,7 +10,9 @@ void setup()
   Entropy.Initialize();
   Serial.begin(115200);
   SERIAL_WAIT;
-  for (int i = 0; i < 42; i++)
+  pinMode(INPUT_CHECK, INPUT);
+  pinMode(OUTPUT_CHECK, OUTPUT);
+  for (int i = 2; i < 42; i++)
     pinMode(i, OUTPUT);
   rj_out[0].data = 0;
   rj_out[0].clock = 0;
@@ -45,13 +47,17 @@ void setup()
   à voir si c'est possible
   */
 
+  leaf_init();
+  digitalWrite(OUTPUT_CHECK, HIGH);
+  while(!digitalRead(INPUT_CHECK))
+    delay(10);
   digitalWrite(RELAY, HIGH);
   DPRINTLN("relay HIGH");
-  led_blink(500, 0);
+  // delay(10);
+  // led_blink(500, 0);
   // digitalWrite(LED_BUILTIN, HIGH);
   // delay(500);
   // digitalWrite(LED_BUILTIN, LOW);
-  leaf_init();
   // rj_out[2].leaf[0].testMode = 1;
 }
 
@@ -61,6 +67,9 @@ void setup()
 
 void loop()
 {
+#ifndef BYPASS_RELAY_SECURITY
+  relay_and_check();
+#endif
 #ifdef TEST_MODE
 #if TEST_MODE == 1
   leaf_test_mode();
@@ -72,40 +81,6 @@ void loop()
 #else
   leaf_status_update1();
 #endif
-
-  // leaf_status_update(); // old
-
-  /**
-   * @brief test les leds module par module, en incrmentant et decrementant avec 1 et 2
-   *
-  if (Serial.available())
-  {
-    Serial.println("hello");
-    serial_num = Serial.read();
-    if (serial_num == '1')
-    {
-      if (rj_testing == 1)
-        rj_testing = 19;
-      else
-        rj_testing--;
-      Serial.println("1");
-      Serial.print("current RJ.");
-      Serial.println(rj_testing);
-    }
-    if (serial_num == '2')
-    {
-      if (rj_testing == 19)
-        rj_testing = 1;
-      else
-        rj_testing++;
-      Serial.println("2");
-      Serial.print("current RJ.");
-      Serial.println(rj_testing);
-    }
-  }
-
-  // test_module(rj_out[rj_testing], 2, 200000);
-  */
 }
 
 void leaf_init(void)
@@ -397,8 +372,8 @@ void test_mode_increment(void)
  */
 void reset_module(t_rj rj_out, int module_nbr)
 {
-  int totalShiftreg; 
-  
+  int totalShiftreg;
+
   if (module_nbr < 1)
     module_nbr = 1;
   totalShiftreg = module_nbr * 2;
@@ -449,4 +424,24 @@ void test_module(t_rj rj_out, int module_nbr, int del)
 
     // delayMicroseconds(del);
   }
+}
+
+void relay_and_check(void)
+{
+  if (!digitalRead(INPUT_CHECK))
+  {
+    digitalWrite(RELAY, 0);
+    for (int i = 1; i <= RJ_TOT; i++)
+      reset_module(rj_out[i], MODULE_SERIE_Q);
+    while (!digitalRead(INPUT_CHECK))
+      delay(10);
+    if (digitalRead(INPUT_CHECK))
+    {
+      leaf_init();
+      digitalWrite(RELAY, 1);
+      return;
+    }
+  }
+  else
+    return;
 }
