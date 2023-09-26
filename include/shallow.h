@@ -14,7 +14,7 @@
 4 - increment RJ
 */
 // #define TEST_MODE 2 // test all leds from RJ_START to RJ_END
-#define HIDE_17_32 // pour le test sur panneau led - met a zero les led de 17 a 32. pas necessaire sur l'install
+// #define HIDE_17_32 // pour le test sur panneau led - met a zero les led de 17 a 32. pas necessaire sur l'install
 // #define BYPASS_RELAY_SECURITY // ne checke pas que les deux teensy soient actifs
 
 //////////////////////////////
@@ -61,7 +61,7 @@
 #define MAX_ON_TIME 8000 // temps max leaf active (microsecondes) * 8000 2023.9.22
 
 #define MIN_OFF_TIME 1000 // temps min leaf inactive (millis) * 1000 2023.9.22
-#define MAX_OFF_TIME 10000 // temps max leaf inactive (millis) * 100000 2023.9.22
+#define MAX_OFF_TIME 15000 // temps max leaf inactive (millis) * 15000 2023.9.26
 
 #define INPUT_CHECK 0
 #define OUTPUT_CHECK 1

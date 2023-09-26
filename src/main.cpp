@@ -108,6 +108,7 @@ void leaf_init(void)
 #endif
       rj_out[i].leaf[rj_leaf].elapsed_off = 0;
       rj_out[i].leaf[rj_leaf].elapsed_on = 0;
+      #ifdef DEBUG
       DPRINT("rj.");
       DPRINT(i);
       DPRINT(" leaf.");
@@ -116,12 +117,13 @@ void leaf_init(void)
       DPRINT(rj_out[i].leaf[rj_leaf].timeOn);
       DPRINT(", time off(millis)=");
       DPRINTLN(rj_out[i].leaf[rj_leaf].timeOff);
-      print_binary(rj_out[i].leaf[rj_leaf].leaf_byte);
+      DPRINT_BINARY(rj_out[i].leaf[rj_leaf].leaf_byte);
       if (rj_out[i].leaf[rj_leaf].testMode)
       {
         DPRINT("test_mode.");
         DPRINTLN(rj_out[i].leaf[rj_leaf].testMode);
       }
+      #endif
     }
     for (int j = 0; j < MODULE_SHIFT_REG * MODULE_SERIE_Q; j++)
     {
