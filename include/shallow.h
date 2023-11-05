@@ -1,7 +1,8 @@
 #include <Arduino.h>
 #include "Entropy.h"
 
-/* MACROS DE TEST */
+//////////////////////////
+/* MACROS DE TEST start */
 
 // #define DEBUG
 // #define WAIT_SERIAL
@@ -17,8 +18,8 @@
 // #define HIDE_17_32 // pour le test sur panneau led - met a zero les led de 17 a 32. pas necessaire sur l'install
 // #define BYPASS_RELAY_SECURITY // ne checke pas que les deux teensy soient actifs
 
-//////////////////////////////
-//////////////////////////////
+/* MACROS DE TEST end */
+////////////////////////
 
 #ifdef DEBUG
 #define DPRINT(...) Serial.print(__VA_ARGS__)

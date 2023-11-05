@@ -49,7 +49,7 @@ void setup()
 
   leaf_init();
   digitalWrite(OUTPUT_CHECK, HIGH);
-  while(!digitalRead(INPUT_CHECK))
+  while (!digitalRead(INPUT_CHECK))
     delay(10);
   digitalWrite(RELAY, HIGH);
   DPRINTLN("relay HIGH");
@@ -108,7 +108,7 @@ void leaf_init(void)
 #endif
       rj_out[i].leaf[rj_leaf].elapsed_off = 0;
       rj_out[i].leaf[rj_leaf].elapsed_on = 0;
-      #ifdef DEBUG
+#ifdef DEBUG
       DPRINT("rj.");
       DPRINT(i);
       DPRINT(" leaf.");
@@ -123,7 +123,7 @@ void leaf_init(void)
         DPRINT("test_mode.");
         DPRINTLN(rj_out[i].leaf[rj_leaf].testMode);
       }
-      #endif
+#endif
     }
     for (int j = 0; j < MODULE_SHIFT_REG * MODULE_SERIE_Q; j++)
     {
@@ -150,13 +150,15 @@ void leaf_status_update1(void)
   {
     for (int rj_leaf = (SHIFT_REG_OUTPUT_Q * MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; rj_leaf >= 0; rj_leaf--)
     {
+      /* regarde si elapsed_off est depasse, et si la feuille n'est effectivement pas active */
       if (rj_out[i].leaf[rj_leaf].elapsed_off >= rj_out[i].leaf[rj_leaf].timeOff && !rj_out[i].leaf[rj_leaf].isActive)
       {
         rj_out[i].leaf[rj_leaf].isActive = 1;
-        // rj_out[i].leaf[rj_leaf].leaf_byte = 1; // mettre dans init puisque jamais modifie?
-        // rj_out[i].leaf[rj_leaf].leaf_byte <<= (rj_leaf + 1) % 8; // mettre dans init puisque jamais modifie?
+        /* applique le mask de la feuille (prepare dans init), sur le byte du shift_register en cours */
         rj_out[i].shift_register[rj_leaf / SHIFT_REG_OUTPUT_Q] |= rj_out[i].leaf[rj_leaf].leaf_byte;
+        /* tire un nouveau temps off pour le prochain tour */
         rj_out[i].leaf[rj_leaf].timeOff = Entropy.random(MIN_OFF_TIME, MAX_OFF_TIME);
+        /* demarre le compteur de temps on */
         rj_out[i].leaf[rj_leaf].elapsed_on = 0;
         DPRINT("rj.");
         DPRINT(i);
@@ -171,9 +173,11 @@ void leaf_status_update1(void)
         DPRINT_BINARY(rj_out[i].shift_register[rj_leaf / SHIFT_REG_OUTPUT_Q]);
         DPRINTLN();
       }
+      /* regarde si la feuille est active et si le elapsed_on est depasse */
       else if (rj_out[i].leaf[rj_leaf].elapsed_on >= rj_out[i].leaf[rj_leaf].timeOn && rj_out[i].leaf[rj_leaf].isActive)
       {
         rj_out[i].leaf[rj_leaf].isActive = 0;
+        /* on applique l operateur AND (sur le byte du shift reg) a partir de l inverse du byte de la feuille, ainsi tous les bits deja allumes restent, sauf celui de la feuille courante */
         rj_out[i].shift_register[rj_leaf / SHIFT_REG_OUTPUT_Q] &= ~rj_out[i].leaf[rj_leaf].leaf_byte;
         rj_out[i].leaf[rj_leaf].timeOn = Entropy.random(MIN_ON_TIME, MAX_ON_TIME);
         rj_out[i].leaf[rj_leaf].elapsed_off = 0;
@@ -191,9 +195,10 @@ void leaf_status_update1(void)
         DPRINTLN();
       }
     }
+    /* chek si le shift reg a change d'etat pour ne pas shiftOut inutilement (pourrait être opti) */
     bool push = 0;
     for (int current_shift_reg = (MODULE_SHIFT_REG * MODULE_SERIE_Q) - 1; current_shift_reg >= 0; current_shift_reg--)
-      if (rj_out[i].shift_register[current_shift_reg] != rj_out[i].prev_shift_register[current_shift_reg]) // pour tenter d'envoyer uniquement les changement d'etat du shift register
+      if (rj_out[i].shift_register[current_shift_reg] != rj_out[i].prev_shift_register[current_shift_reg])
       {
         push = 1;
         break;
@@ -428,6 +433,11 @@ void test_module(t_rj rj_out, int module_nbr, int del)
   }
 }
 
+/**
+ * @brief AND logic check. checks if both teensy master boards are running. if not, relay shuts down and one resets all bits
+ *
+ * @param delay in microseconds
+ */
 void relay_and_check(void)
 {
   if (!digitalRead(INPUT_CHECK))
